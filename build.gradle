@@ -1,13 +1,13 @@
 plugins {
-	id 'fabric-loom' version '1.0-SNAPSHOT'
-	id 'maven-publish'
-	id "io.freefair.lombok" version "6.0.0-m2"
+    id 'fabric-loom' version '1.11-SNAPSHOT'
+    id 'maven-publish'
+    id "io.freefair.lombok" version "8.10"
 }
 
-apply from: 'https://raw.githubusercontent.com/DarkKronicle/GradleScripts/main/gradle/publish.gradle'
+apply from: 'https://raw.githubusercontent.com/Scrupyy/GradleScripts/main/gradle/publish.gradle'
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = project.archives_base_name
 version = "${project.minecraft_version}-${project.mod_version}"
@@ -15,97 +15,110 @@ group = project.maven_group
 
 Properties additionalProperties = new Properties()
 if (file("extra.properties").exists()) {
-	additionalProperties.load(file("extra.properties").newReader())
+    additionalProperties.load(file("extra.properties").newReader())
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
-	mavenCentral()
-	maven { url 'https://masa.dy.fi/maven' }
+    mavenCentral()
+    maven { url 'https://masa.dy.fi/maven' }
     maven { url 'https://maven.terraformersmc.com/releases/' }
-	maven { url 'https://jitpack.io' }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	modImplementation "fi.dy.masa.malilib:malilib-fabric-1.19.4:${project.malilib_version}"
-	modCompileOnly "com.terraformersmc:modmenu:5.0.1"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    //modImplementation "fi.dy.masa.malilib:malilib-fabric-1.21.8:${project.malilib_version}"
+    modImplementation("com.github.sakura-ryoko:malilib:1.21.8-0.25.5")
+    modCompileOnly "com.terraformersmc:modmenu:5.0.1"
 
-	implementation "com.github.DarkKronicle.Konstruct:addons:${project.konstruct_version}"
-	implementation "com.github.DarkKronicle.Konstruct:core:${project.konstruct_version}"
+    implementation "com.github.DarkKronicle.Konstruct:addons:${project.konstruct_version}"
+    implementation "com.github.DarkKronicle.Konstruct:core:${project.konstruct_version}"
 
-	implementation 'com.electronwill.night-config:toml:3.6.5'
-	// Transitive
-	include 'com.electronwill.night-config:toml:3.6.5'
-	include 'com.electronwill.night-config:core:3.6.5'
+    implementation 'com.electronwill.night-config:toml:3.6.5'
+    // Transitive
+    include 'com.electronwill.night-config:toml:3.6.5'
+    include 'com.electronwill.night-config:core:3.6.5'
 
 
-	include "com.github.DarkKronicle.Konstruct:addons:${project.konstruct_version}"
-	include "com.github.DarkKronicle.Konstruct:core:${project.konstruct_version}"
+    include "com.github.DarkKronicle.Konstruct:addons:${project.konstruct_version}"
+    include "com.github.DarkKronicle.Konstruct:core:${project.konstruct_version}"
 
-	implementation "org.mariuszgromada.math:MathParser.org-mXparser:${project.mxparser_version}"
-	include "org.mariuszgromada.math:MathParser.org-mXparser:${project.mxparser_version}"
+    implementation "org.mariuszgromada.math:MathParser.org-mXparser:${project.mxparser_version}"
+    include "org.mariuszgromada.math:MathParser.org-mXparser:${project.mxparser_version}"
 
-	implementation "io.github.maowimpl:owo:${project.owo_version}"
-	include "io.github.maowimpl:owo:${project.owo_version}"
+    implementation "io.github.maowimpl:owo:${project.owo_version}"
+    include "io.github.maowimpl:owo:${project.owo_version}"
 
-	implementation 'org.apache.commons:commons-csv:1.8'
-	include 'org.apache.commons:commons-csv:1.8'
+    implementation 'org.apache.commons:commons-csv:1.8'
+    include 'org.apache.commons:commons-csv:1.8'
 
 }
 
 processResources {
-	inputs.property "version", project.version
+    inputs.property "version", project.version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
-	it.options.release = 17
+    it.options.encoding = "UTF-8"
+    it.options.release = 21
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
-	from sourceSets.main.allSource
+//task sourcesJar(type: Jar, dependsOn: classes) {
+//	classifier = "sources"
+//	from sourceSets.main.allSource
+//}
+
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
 }
 
 jar {
-	from "LICENSE.txt"
+    from "LICENSE.txt"
 }
 
-tasks.register('downloadExtra') {
-	def f = new File('./src/main/resources/swear_words.csv')
-	if (!f.exists()) {
-		new URL('https://raw.githubusercontent.com/surge-ai/profanity/main/profanity_en.csv').withInputStream{ i -> f.withOutputStream{ it << i }}
-	}
-}
+//tasks.register('downloadExtra') {
+//    def f = new File('./src/main/resources/swear_words.csv')
+//    if (!f.exists()) {
+//        new URL('https://raw.githubusercontent.com/surge-ai/toxicity/main/toxicity_en.csv').withInputStream { i -> f.withOutputStream { it << i } }
+//    }
+//}
 
-assemble {
-	dependsOn 'downloadExtra'
-}
+//assemble {
+//    dependsOn 'downloadExtra'
+//}
 
 // configure the maven publication
 publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
-		}
-	}
+    publications {
+        mavenJava(MavenPublication) {
+            // add all the jars that should be included when publishing to maven
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
+        }
+    }
 
-	// select the repositories you want to publish to
-	repositories {
-		// uncomment to publish to the local maven
-		// mavenLocal()
-	}
+    // select the repositories you want to publish to
+    repositories {
+        // uncomment to publish to the local maven
+        // mavenLocal()
+    }
 }

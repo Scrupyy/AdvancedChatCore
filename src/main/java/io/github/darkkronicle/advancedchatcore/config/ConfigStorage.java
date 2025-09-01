@@ -29,17 +29,14 @@ import io.github.darkkronicle.advancedchatcore.util.AbstractRegistry;
 import io.github.darkkronicle.advancedchatcore.util.Color;
 import io.github.darkkronicle.advancedchatcore.util.Colors;
 import io.github.darkkronicle.advancedchatcore.util.EasingMethod;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.List;
 
 // Used to store values into config.json
 @Environment(EnvType.CLIENT)
@@ -258,21 +255,18 @@ public class ConfigStorage implements IConfigHandler {
     }
 
     public static void loadFromFile() {
-        File v3 = FileUtils.getConfigDirectory().toPath().resolve(CONFIG_FILE_NAME).toFile();
+        Path configDirectoryAsPath = FileUtils.getConfigDirectoryAsPath();
+        File v3 = configDirectoryAsPath.resolve(CONFIG_FILE_NAME).toFile();
         File configFile;
         if (v3.exists()
-                && !FileUtils.getConfigDirectory()
-                        .toPath()
-                        .resolve("advancedchat")
-                        .resolve(CONFIG_FILE_NAME)
-                        .toFile()
-                        .exists()) {
+                && !configDirectoryAsPath.resolve("advancedchat")
+                .resolve(CONFIG_FILE_NAME)
+                .toFile()
+                .exists()) {
             configFile = v3;
         } else {
             configFile =
-                    FileUtils.getConfigDirectory()
-                            .toPath()
-                            .resolve("advancedchat")
+                    configDirectoryAsPath.resolve("advancedchat")
                             .resolve(CONFIG_FILE_NAME)
                             .toFile();
         }
@@ -295,7 +289,7 @@ public class ConfigStorage implements IConfigHandler {
     /**
      * Applies a JSON element into a registry
      *
-     * @param element Element in key
+     * @param element  Element in key
      * @param registry Registry to apply too
      */
     public static void applyRegistry(
@@ -327,7 +321,7 @@ public class ConfigStorage implements IConfigHandler {
     }
 
     public static void saveFromFile() {
-        File dir = FileUtils.getConfigDirectory().toPath().resolve("advancedchat").toFile();
+        File dir = FileUtils.getConfigDirectoryAsPath().resolve("advancedchat").toFile();
 
         if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
             JsonObject root = new JsonObject();
@@ -364,8 +358,8 @@ public class ConfigStorage implements IConfigHandler {
             try {
                 JsonParser parser = new JsonParser();
                 Charset[] sets =
-                        new Charset[] {
-                            StandardCharsets.UTF_8, Charset.defaultCharset(),
+                        new Charset[]{
+                                StandardCharsets.UTF_8, Charset.defaultCharset(),
                         };
                 // Start to enforce UTF 8. Old files may be UTF-16
                 for (Charset s : sets) {
@@ -375,7 +369,7 @@ public class ConfigStorage implements IConfigHandler {
                         element = parser.parse(reader);
                     } catch (Exception e) {
                         reader.close();
-                        MaLiLib.logger.error(
+                        MaLiLib.LOGGER.error(
                                 "Failed to parse the JSON file '{}'. Attempting different charset."
                                         + " ",
                                 fileName,
@@ -387,7 +381,7 @@ public class ConfigStorage implements IConfigHandler {
                     return element;
                 }
             } catch (Exception e) {
-                MaLiLib.logger.error("Failed to parse the JSON file '{}'", fileName, e);
+                MaLiLib.LOGGER.error("Failed to parse the JSON file '{}'", fileName, e);
             }
         }
 
@@ -405,7 +399,7 @@ public class ConfigStorage implements IConfigHandler {
 
             return true;
         } catch (IOException e) {
-            MaLiLib.logger.warn(
+            MaLiLib.LOGGER.warn(
                     "Failed to write JSON data to file '{}'", file.getAbsolutePath(), e);
         } finally {
             try {
@@ -413,7 +407,7 @@ public class ConfigStorage implements IConfigHandler {
                     writer.close();
                 }
             } catch (Exception e) {
-                MaLiLib.logger.warn("Failed to close JSON file", e);
+                MaLiLib.LOGGER.warn("Failed to close JSON file", e);
             }
         }
 
@@ -439,7 +433,9 @@ public class ConfigStorage implements IConfigHandler {
         saveFromFile();
     }
 
-    /** Serializable easing data */
+    /**
+     * Serializable easing data
+     */
     public enum Easing implements IConfigOptionListEntry, EasingMethod {
         LINEAR("linear", Method.LINEAR),
         SINE("sine", Method.SINE),

@@ -5,10 +5,9 @@ import io.github.darkkronicle.advancedchatcore.util.Color;
 import io.github.darkkronicle.advancedchatcore.util.Colors;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
@@ -59,7 +58,7 @@ public class IconButton extends CleanButton {
     }
 
     @Override
-    public void render(int mouseX, int mouseY, boolean unused, MatrixStack matrixStack) {
+    public void render(DrawContext context, int mouseX, int mouseY, boolean unused) {
         int relMX = mouseX - x;
         int relMY = mouseY - y;
         hovered = relMX >= 0 && relMX <= width && relMY >= 0 && relMY <= height;
@@ -69,21 +68,14 @@ public class IconButton extends CleanButton {
             plusBack = Colors.getInstance().getColorOrWhite("hover").withAlpha(plusBack.alpha());
         }
 
-        RenderUtils.drawRect(x, y, width, height, plusBack.color());
-
-        RenderUtils.color(1, 1, 1, 1);
-        RenderUtils.bindTexture(icon);
-        DrawableHelper.drawTexture(matrixStack, x + padding, y + padding, width - (padding * 2), height - (padding * 2),
-                0, 0, iconWidth, iconHeight, iconWidth, iconHeight);
+        context.fill(x, y, x + width, y + height, plusBack.color());
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, icon, x, y, 0, 0, width, height, width, height);
 
         if (hovered && onHover != null) {
-            DrawableHelper.drawCenteredTextWithShadow(
-                    matrixStack,
-                    MinecraftClient.getInstance().textRenderer,
-                    onHover,
-                    mouseX + 4,
+            RenderUtils.drawCenteredString(context, mouseX + 4,
                     mouseY - 16,
-                    Colors.getInstance().getColorOrWhite("white").color());
+                    Colors.getInstance().getColorOrWhite("white").color(),
+                    onHover);
         }
     }
 

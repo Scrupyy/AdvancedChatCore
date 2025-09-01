@@ -20,17 +20,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Environment(EnvType.CLIENT)
 @Mixin(MinecraftClient.class)
 public class MixinMinecraftClient {
 
-    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V", at = @At("RETURN"))
-    public void onDisconnect(Screen screen, CallbackInfo ci) {
-        // Clear data on disconnect
+    @Inject(method = "disconnect", at = @At("RETURN"))
+    public void disconnect(Screen disconnectionScreen, boolean transferring, CallbackInfo ci) {
         if (ConfigStorage.General.CLEAR_ON_DISCONNECT.config.getBooleanValue()) {
             ChatHistory.getInstance().clearAll();
         }

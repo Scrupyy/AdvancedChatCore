@@ -19,10 +19,10 @@ import io.github.darkkronicle.advancedchatcore.util.Color;
 import io.github.darkkronicle.advancedchatcore.util.RowList;
 import lombok.Getter;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -42,11 +42,17 @@ public class AdvancedChatScreen extends GuiBase {
     private int startHistory = -1;
     private boolean passEvents = false;
 
-    /** Chat field at the bottom of the screen */
-    @Getter protected AdvancedTextField chatField;
+    /**
+     * Chat field at the bottom of the screen
+     */
+    @Getter
+    protected AdvancedTextField chatField;
 
-    /** What the chat box started out with */
-    @Getter private String originalChatText = "";
+    /**
+     * What the chat box started out with
+     */
+    @Getter
+    private String originalChatText = "";
 
     private static String last = "";
     private final List<AdvancedChatScreenSection> sections = new ArrayList<>();
@@ -142,7 +148,10 @@ public class AdvancedChatScreen extends GuiBase {
         this.chatField.setChangedListener(this::onChatFieldUpdate);
 
         // Add settings button
-        rightSideButtons.add("settings", new IconButton(0, 0, 14, 64, new Identifier(AdvancedChatCore.MOD_ID, "textures/gui/settings.png"), (button) -> GuiBase.openGui(GuiConfigHandler.getInstance().getDefaultScreen())));
+        IconButton iconButton = new IconButton(0, 0, 14, 64, Identifier.of(AdvancedChatCore.MOD_ID, "textures/gui/settings.png"), (button) -> {
+            GuiBase.openGui(GuiConfigHandler.getInstance().getDefaultScreen());
+        });
+        rightSideButtons.add("settings", iconButton);
 
         this.addSelectableChild(this.chatField);
 
@@ -379,24 +388,26 @@ public class AdvancedChatScreen extends GuiBase {
         }
     }
 
+
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
         ChatHud hud = client.inGameHud.getChatHud();
+        hud.render(drawContext, 0, mouseX, mouseY, true);
         this.setFocused(this.chatField);
         this.chatField.setFocused(true);
-        this.chatField.render(matrixStack, mouseX, mouseY, partialTicks);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.chatField.render(drawContext, mouseX, mouseY, partialTicks);
+        super.render(drawContext, mouseX, mouseY, partialTicks);
         for (AdvancedChatScreenSection section : sections) {
-            section.render(matrixStack, mouseX, mouseY, partialTicks);
+            section.render(drawContext, mouseX, mouseY, partialTicks);
         }
         Style style = hud.getTextStyleAt(mouseX, mouseY);
         if (style != null && style.getHoverEvent() != null) {
-            this.renderTextHoverEffect(matrixStack, style, mouseX, mouseY);
+            drawContext.drawHoverEvent(textRenderer, style, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void drawScreenBackground(int mouseX, int mouseY) {
+    protected void drawScreenBackground(DrawContext drawContext, int mouseX, int mouseY) {
 
     }
 

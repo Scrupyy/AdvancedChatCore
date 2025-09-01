@@ -7,19 +7,19 @@
  */
 package io.github.darkkronicle.advancedchatcore.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListEntryBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
 import fi.dy.masa.malilib.render.RenderUtils;
 import io.github.darkkronicle.advancedchatcore.util.Colors;
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
+
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TYPE> {
@@ -27,7 +27,9 @@ public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TY
     private final boolean odd;
     private final List<String> hoverLines;
 
-    @Setter @Getter private int buttonStartX;
+    @Setter
+    @Getter
+    private int buttonStartX;
 
     public WidgetConfigListEntry(
             int x, int y, int width, int height, boolean isOdd, TYPE entry, int listIndex) {
@@ -49,7 +51,9 @@ public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TY
         this.buttonStartX = x + width;
     }
 
-    /** Get's the name to render for the entry. */
+    /**
+     * Get's the name to render for the entry.
+     */
     public String getName() {
         return "";
     }
@@ -59,9 +63,7 @@ public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TY
     }
 
     @Override
-    public void render(int mouseX, int mouseY, boolean selected, MatrixStack matrixStack) {
-        RenderUtils.color(1f, 1f, 1f, 1f);
-
+    public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
         // Draw a lighter background for the hovered and the selected entry
         if (selected || this.isMouseOver(mouseX, mouseY)) {
             RenderUtils.drawRect(
@@ -86,36 +88,30 @@ public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TY
                     Colors.getInstance().getColorOrWhite("white").withAlpha(50).color());
         }
 
-        renderEntry(mouseX, mouseY, selected, matrixStack);
+        renderEntry(mouseX, mouseY, selected, drawContext);
 
-        RenderUtils.color(1f, 1f, 1f, 1f);
-        RenderSystem.disableBlend();
+        this.drawTextFields(mouseX, mouseY, drawContext);
 
-        this.drawTextFields(mouseX, mouseY, matrixStack);
-
-        super.render(mouseX, mouseY, selected, matrixStack);
-
-        RenderUtils.disableDiffuseLighting();
+        super.render(drawContext, mouseX, mouseY, selected);
     }
 
     /**
      * Render's in the middle of the rendering cycle. After the background, but before it goes to
      * super.
      */
-    public void renderEntry(int mouseX, int mouseY, boolean selected, MatrixStack matrixStack) {
+    public void renderEntry(int mouseX, int mouseY, boolean selected, DrawContext drawContext) {
         String name = getName();
-        this.drawString(
+        this.drawString(drawContext,
                 this.x + 4,
                 this.y + 7,
                 Colors.getInstance().getColorOrWhite("white").color(),
-                name,
-                matrixStack);
+                name);
     }
 
     @Override
-    public void postRenderHovered(
-            int mouseX, int mouseY, boolean selected, MatrixStack matrixStack) {
-        super.postRenderHovered(mouseX, mouseY, selected, matrixStack);
+    public void postRenderHovered(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
+        super.postRenderHovered(drawContext, mouseX, mouseY, selected);
+
         if (hoverLines == null) {
             return;
         }
@@ -124,7 +120,7 @@ public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TY
                 && mouseX < this.buttonStartX
                 && mouseY >= this.y
                 && mouseY <= this.y + this.height) {
-            RenderUtils.drawHoverText(mouseX, mouseY, this.hoverLines, matrixStack);
+            RenderUtils.drawHoverText(drawContext, mouseX, mouseY, this.hoverLines);
         }
     }
 
@@ -181,12 +177,12 @@ public abstract class WidgetConfigListEntry<TYPE> extends WidgetListEntryBase<TY
         return ret;
     }
 
-    protected void drawTextFields(int mouseX, int mouseY, MatrixStack matrixStack) {
+    protected void drawTextFields(int mouseX, int mouseY, DrawContext drawContext) {
         if (getTextFields() == null) {
             return;
         }
         for (TextFieldWrapper<GuiTextFieldGeneric> field : getTextFields()) {
-            field.getTextField().render(matrixStack, mouseX, mouseY, 0f);
+            field.getTextField().render(drawContext, mouseX, mouseY, 0f);
         }
     }
 }

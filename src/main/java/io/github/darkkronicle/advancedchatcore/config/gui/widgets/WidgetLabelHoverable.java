@@ -9,9 +9,10 @@ package io.github.darkkronicle.advancedchatcore.config.gui.widgets;
 
 import fi.dy.masa.malilib.gui.widgets.WidgetLabel;
 import fi.dy.masa.malilib.render.RenderUtils;
+import net.minecraft.client.gui.DrawContext;
+
 import java.util.Arrays;
 import java.util.List;
-import net.minecraft.client.util.math.MatrixStack;
 
 public class WidgetLabelHoverable extends WidgetLabel {
 
@@ -32,9 +33,8 @@ public class WidgetLabelHoverable extends WidgetLabel {
     }
 
     @Override
-    public void postRenderHovered(
-            int mouseX, int mouseY, boolean selected, MatrixStack matrixStack) {
-        super.postRenderHovered(mouseX, mouseY, selected, matrixStack);
+    public void postRenderHovered(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
+        super.postRenderHovered(drawContext, mouseX, mouseY, selected);
 
         if (hoverLines == null) {
             return;
@@ -44,7 +44,8 @@ public class WidgetLabelHoverable extends WidgetLabel {
                 && mouseX < this.x + this.width
                 && mouseY >= this.y
                 && mouseY <= this.y + this.height) {
-            RenderUtils.drawHoverText(mouseX, mouseY, this.hoverLines, matrixStack);
+            RenderUtils.drawHoverText(drawContext, mouseX, mouseY, this.hoverLines);
         }
     }
+
 }

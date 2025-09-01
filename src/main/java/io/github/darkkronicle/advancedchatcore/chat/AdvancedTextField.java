@@ -7,8 +7,6 @@
  */
 package io.github.darkkronicle.advancedchatcore.chat;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import fi.dy.masa.malilib.util.KeyCodes;
 import io.github.darkkronicle.advancedchatcore.config.ConfigStorage;
 import io.github.darkkronicle.advancedchatcore.util.StringMatch;
@@ -16,12 +14,10 @@ import io.github.darkkronicle.advancedchatcore.util.StyleFormatter;
 import io.github.darkkronicle.advancedchatcore.util.TextBuilder;
 import io.github.darkkronicle.advancedchatcore.util.TextUtil;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -42,7 +38,9 @@ public class AdvancedTextField extends TextFieldWidget {
      */
     private String lastSaved = "";
 
-    /** Snapshots of chat box */
+    /**
+     * Snapshots of chat box
+     */
     private final List<String> history = new ArrayList<>();
 
     private int focusedTicks = 0;
@@ -75,7 +73,6 @@ public class AdvancedTextField extends TextFieldWidget {
         updateRender();
     }
 
-    @Override
     public void tick() {
         focusedTicks++;
     }
@@ -96,7 +93,9 @@ public class AdvancedTextField extends TextFieldWidget {
         return code == KeyCodes.KEY_Z && Screen.hasControlDown() && !Screen.hasAltDown();
     }
 
-    /** Triggers undo for the text box */
+    /**
+     * Triggers undo for the text box
+     */
     public void undo() {
         // Save the current snapshot if it's been edited
         if (!this.lastSaved.equals(this.getText()) && historyIndex < 0) {
@@ -153,8 +152,8 @@ public class AdvancedTextField extends TextFieldWidget {
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        int color = 0xE0E0E0;
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        int color = 0xFFE0E0E0;
         int cursor = getCursor();
         int cursorRow = renderLines.size() - 1;
         boolean renderCursor = this.isFocused() && focusedTicks / 6 % 2 == 0;
@@ -175,15 +174,17 @@ public class AdvancedTextField extends TextFieldWidget {
             selEnd = this.selectionStart;
         }
         int x = getX();
-        int y = getY()    ;
-        fill(matrices, getX() - 2, renderY - 2, getX() + width + 4, getY() + height + 4, ConfigStorage.ChatScreen.COLOR.config.get().color());
+        int y = getY();
+
+        context.fill(getX() - 2, renderY - 2, getX() + width + 4, getY() + height + 4, ConfigStorage.ChatScreen.COLOR.config.get().color());
         for (int line = 0; line < renderLines.size(); line++) {
             Text text = renderLines.get(line);
             if (cursor >= charCount && cursor < text.getString().length() + charCount) {
                 cursorX = textRenderer.getWidth(text.getString().substring(0, cursor - charCount));
                 cursorRow = line;
             }
-            endX = textRenderer.drawWithShadow(matrices, text, x, renderY, color);
+            endX = textRenderer.getWidth(text);
+            context.drawTextWithShadow(textRenderer, text, x, renderY, color);
             if (selection) {
                 if (!started && selStart >= charCount && selStart <= text.getString().length() + charCount) {
                     started = true;
@@ -191,19 +192,19 @@ public class AdvancedTextField extends TextFieldWidget {
                     if (selEnd > charCount && selEnd <= text.getString().length() + charCount) {
                         ended = true;
                         int sEndX = textRenderer.getWidth(TextUtil.truncate(text, new StringMatch("", 0, selEnd - charCount)));
-                        drawSelectionHighlight(x + startX, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight);
+                        drawSelectionHighlight(x + startX, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight, context);
                     } else {
                         int sEndX = textRenderer.getWidth(text);
-                        drawSelectionHighlight(x + startX, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight);
+                        drawSelectionHighlight(x + startX, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight, context);
                     }
                 } else if (started && !ended) {
                     if (selEnd >= charCount && selEnd <= text.getString().length() + charCount) {
                         ended = true;
                         int sEndX = textRenderer.getWidth(TextUtil.truncate(text, new StringMatch("", 0, selEnd - charCount)));
-                        drawSelectionHighlight(x, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight);
+                        drawSelectionHighlight(x, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight, context);
                     } else {
                         int sEndX = textRenderer.getWidth(text);
-                        drawSelectionHighlight(x, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight);
+                        drawSelectionHighlight(x, renderY - 1, x + sEndX, renderY + textRenderer.fontHeight, context);
                     }
                 }
             }
@@ -215,19 +216,19 @@ public class AdvancedTextField extends TextFieldWidget {
         }
         boolean cursorAtEnd = getCursor() == getText().length();
         if (!cursorAtEnd && this.suggestion != null) {
-            this.textRenderer.drawWithShadow(matrices, this.suggestion, endX - 1, y, -8355712);
+            context.drawTextWithShadow(textRenderer, this.suggestion, endX - 1, y, -8355712);
         }
         if (renderCursor) {
             int cursorY = y - (renderLines.size() - 1 - cursorRow) * (textRenderer.fontHeight + 2);
             if (cursorAtEnd) {
-                DrawableHelper.fill(matrices, cursorX, cursorY - 1, cursorX + 1, cursorY + 1 + this.textRenderer.fontHeight, -3092272);
+                context.fill(cursorX + 4, cursorY - 1, cursorX + 5, cursorY + 1 + this.textRenderer.fontHeight, -3092272);
             } else {
-                this.textRenderer.drawWithShadow(matrices, "_", x + cursorX, cursorY, color);
+                context.drawTextWithShadow(textRenderer, "_", x + cursorX, cursorY, color);
             }
         }
     }
 
-    private void drawSelectionHighlight(int x1, int y1, int x2, int y2) {
+    private void drawSelectionHighlight(int x1, int y1, int x2, int y2, DrawContext drawContext) {
         int x = getX();
         int y = getY();
         int i;
@@ -247,21 +248,24 @@ public class AdvancedTextField extends TextFieldWidget {
         if (x1 > x + this.width) {
             x1 = x + this.width;
         }
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
-        RenderSystem.setShader(GameRenderer::getPositionProgram);
-        RenderSystem.setShaderColor(0.0f, 0.0f, 1.0f, 1.0f);
-//        RenderSystem.disableTexture();
-        RenderSystem.enableColorLogicOp();
-        RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-        bufferBuilder.vertex(x1, y2, 0.0).next();
-        bufferBuilder.vertex(x2, y2, 0.0).next();
-        bufferBuilder.vertex(x2, y1, 0.0).next();
-        bufferBuilder.vertex(x1, y1, 0.0).next();
-        tessellator.draw();
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.disableColorLogicOp();
+
+        drawContext.fill(x1, y1, x2, y2, 0x7F3399FF);
+
+//        Tessellator tessellator = Tessellator.getInstance();
+//        BufferBuilder bufferBuilder = tessellator.getBuffer();
+//        RenderSystem.setShader(GameRenderer::getPositionProgram);
+//        RenderSystem.setShaderColor(0.0f, 0.0f, 1.0f, 1.0f);
+////        RenderSystem.disableTexture();
+//        RenderSystem.enableColorLogicOp();
+//        RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
+//        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+//        bufferBuilder.vertex(x1, y2, 0.0).next();
+//        bufferBuilder.vertex(x2, y2, 0.0).next();
+//        bufferBuilder.vertex(x2, y1, 0.0).next();
+//        bufferBuilder.vertex(x1, y1, 0.0).next();
+//        tessellator.draw();
+//        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+//        RenderSystem.disableColorLogicOp();
 //        RenderSystem.enableTexture();
     }
 
@@ -286,7 +290,7 @@ public class AdvancedTextField extends TextFieldWidget {
     /**
      * Sets the text for the text field
      *
-     * @param text Text to set
+     * @param text   Text to set
      * @param update Updates the history
      */
     public void setText(String text, boolean update) {

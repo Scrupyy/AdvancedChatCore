@@ -19,19 +19,14 @@ import io.github.darkkronicle.advancedchatcore.config.ConfigStorage;
 import io.github.darkkronicle.advancedchatcore.config.gui.GuiConfig;
 import io.github.darkkronicle.advancedchatcore.config.gui.GuiConfigHandler;
 import io.github.darkkronicle.advancedchatcore.config.gui.TabSupplier;
-import io.github.darkkronicle.advancedchatcore.finder.CustomFinder;
-import io.github.darkkronicle.advancedchatcore.finder.custom.ProfanityFinder;
 import io.github.darkkronicle.advancedchatcore.hotkeys.InputHandler;
-import io.github.darkkronicle.advancedchatcore.util.ProfanityUtil;
-import io.github.darkkronicle.advancedchatcore.util.StringInsert;
-import io.github.darkkronicle.advancedchatcore.util.StringMatch;
-import io.github.darkkronicle.advancedchatcore.util.TextUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class InitHandler implements IInitializationHandler {
@@ -49,38 +44,38 @@ public class InitHandler implements IInitializationHandler {
                 GuiConfigHandler.children(
                         "advancedchatcore",
                         "advancedchat.tab.advancedchatcore",
-                GuiConfigHandler.wrapOptions(
-                        "core_general",
-                        "advancedchatcore.tab.general",
-                        ConfigStorage.General.OPTIONS.stream().map((saveableConfig) -> (IConfigBase) saveableConfig.config).toList()
-                ),
-                GuiConfigHandler.wrapOptions(
-                        "chatscreen",
-                        "advancedchatcore.tab.chatscreen",
-                        ConfigStorage.ChatScreen.OPTIONS.stream().map((saveableConfig) -> (IConfigBase) saveableConfig.config).toList()
-                ))
+                        GuiConfigHandler.wrapOptions(
+                                "core_general",
+                                "advancedchatcore.tab.general",
+                                ConfigStorage.General.OPTIONS.stream().map((saveableConfig) -> (IConfigBase) saveableConfig.config).toList()
+                        ),
+                        GuiConfigHandler.wrapOptions(
+                                "chatscreen",
+                                "advancedchatcore.tab.chatscreen",
+                                ConfigStorage.ChatScreen.OPTIONS.stream().map((saveableConfig) -> (IConfigBase) saveableConfig.config).toList()
+                        ))
         );
 
-        ProfanityUtil.getInstance().loadConfigs();
-        MessageDispatcher.getInstance().registerPreFilter(text -> {
-            if (ConfigStorage.General.FILTER_PROFANITY.config.getBooleanValue()) {
-                List<StringMatch> profanity =
-                        ProfanityUtil.getInstance().getBadWords(text.getString(), (float) ConfigStorage.General.PROFANITY_ABOVE.config.getDoubleValue(), ConfigStorage.General.PROFANITY_ON_WORD_BOUNDARIES.config.getBooleanValue());
-                if (profanity.size() == 0) {
-                    return Optional.empty();
-                }
-                Map<StringMatch, StringInsert> insertions =
-                        new HashMap<>();
-                for (StringMatch bad : profanity) {
-                    insertions.put(bad, (current, match) ->
-                            Text.literal("*".repeat(bad.end - bad.start)).fillStyle(current.getStyle())
-                    );
-                }
-                text = TextUtil.replaceStrings(text, insertions);
-                return Optional.of(text);
-            }
-            return Optional.empty();
-        }, -1);
+//        ProfanityUtil.getInstance().loadConfigs();
+//        MessageDispatcher.getInstance().registerPreFilter(text -> {
+//            if (ConfigStorage.General.FILTER_PROFANITY.config.getBooleanValue()) {
+//                List<StringMatch> profanity =
+//                        ProfanityUtil.getInstance().getBadWords(text.getString(), (float) ConfigStorage.General.PROFANITY_ABOVE.config.getDoubleValue(), ConfigStorage.General.PROFANITY_ON_WORD_BOUNDARIES.config.getBooleanValue());
+//                if (profanity.size() == 0) {
+//                    return Optional.empty();
+//                }
+//                Map<StringMatch, StringInsert> insertions =
+//                        new HashMap<>();
+//                for (StringMatch bad : profanity) {
+//                    insertions.put(bad, (current, match) ->
+//                            Text.literal("*".repeat(bad.end - bad.start)).fillStyle(current.getStyle())
+//                    );
+//                }
+//                text = TextUtil.replaceStrings(text, insertions);
+//                return Optional.of(text);
+//            }
+//            return Optional.empty();
+//        }, -1);
 
         // This constructs the default chat suggestor
         ChatScreenSectionHolder.getInstance()
@@ -92,12 +87,12 @@ public class InitHandler implements IInitializationHandler {
                             return null;
                         }));
 
-        CustomFinder.getInstance()
-                .register(
-                        ProfanityFinder::new,
-                        "profanity",
-                        "advancedchatcore.findtype.custom.profanity",
-                        "advancedchatcore.findtype.custom.info.profanity");
+//        CustomFinder.getInstance()
+//                .register(
+//                        ProfanityFinder::new,
+//                        "profanity",
+//                        "advancedchatcore.findtype.custom.profanity",
+//                        "advancedchatcore.findtype.custom.info.profanity");
 
         InputHandler.getInstance().addDisplayName("core_general", "advancedchatcore.config.tab.hotkeysgeneral");
         InputHandler.getInstance().add("core_general", ConfigStorage.Hotkeys.OPEN_CHAT.config, (action, key) -> {
@@ -126,7 +121,8 @@ public class InitHandler implements IInitializationHandler {
             client.currentScreen = new AdvancedChatScreen(true);
             client.mouse.unlockCursor();
             client.currentScreen.init(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
-            client.skipGameRender = false;;
+            client.skipGameRender = false;
+
             client.updateWindowTitle();
             return true;
         });

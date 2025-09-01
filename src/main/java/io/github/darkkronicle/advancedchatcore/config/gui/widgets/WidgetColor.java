@@ -12,9 +12,10 @@ import fi.dy.masa.malilib.render.RenderUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.github.darkkronicle.advancedchatcore.util.Color;
 import io.github.darkkronicle.advancedchatcore.util.Colors;
-import java.util.Optional;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
+
+import java.util.Optional;
 
 public class WidgetColor extends GuiTextFieldGeneric {
 
@@ -30,8 +31,8 @@ public class WidgetColor extends GuiTextFieldGeneric {
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        super.renderWidget(context, mouseX, mouseY, deltaTicks);
         int y = this.y;
         RenderUtils.drawRect(this.colorX, y, 19, 19, 0xFFFFFFFF);
         RenderUtils.drawRect(this.colorX + 1, y + 1, 17, 17, 0xFF000000);

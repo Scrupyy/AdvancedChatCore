@@ -16,9 +16,11 @@ import lombok.ToString;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
 
-/** A simple button */
+/**
+ * A simple button
+ */
 @EqualsAndHashCode(callSuper = false)
 @ToString
 @Environment(EnvType.CLIENT)
@@ -31,12 +33,12 @@ public class CleanButton extends ButtonBase {
     /**
      * Constructs a new simple clean button
      *
-     * @param x X
-     * @param y Y
-     * @param width Width
-     * @param height Height
+     * @param x         X
+     * @param y         Y
+     * @param width     Width
+     * @param height    Height
      * @param baseColor Color that it should render when not hovered
-     * @param text Text to render
+     * @param text      Text to render
      */
     public CleanButton(int x, int y, int width, int height, Color baseColor, String text) {
         super(x, y, width, height, text);
@@ -46,7 +48,7 @@ public class CleanButton extends ButtonBase {
     }
 
     @Override
-    public void render(int mouseX, int mouseY, boolean selected, MatrixStack matrixStack) {
+    public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
         int relMX = mouseX - x;
         int relMY = mouseY - y;
         hovered = relMX >= 0 && relMX <= width && relMY >= 0 && relMY <= height;
@@ -55,11 +57,10 @@ public class CleanButton extends ButtonBase {
             color = Colors.getInstance().getColor("white").get().withAlpha(color.alpha());
         }
         RenderUtils.drawRect(x, y, width, height, color.color());
-        drawCenteredString(
+        drawCenteredString(drawContext,
                 (x + (width / 2)),
                 (y + (height / 2) - 3),
                 Colors.getInstance().getColorOrWhite("white").color(),
-                displayString,
-                matrixStack);
+                displayString);
     }
 }

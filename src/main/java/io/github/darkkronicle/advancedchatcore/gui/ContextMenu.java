@@ -1,13 +1,13 @@
 package io.github.darkkronicle.advancedchatcore.gui;
 
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
+import fi.dy.masa.malilib.render.RenderUtils;
 import io.github.darkkronicle.advancedchatcore.util.Color;
 import io.github.darkkronicle.advancedchatcore.util.TextUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 
 import java.util.LinkedHashMap;
@@ -88,26 +88,26 @@ public class ContextMenu extends WidgetBase {
     }
 
     @Override
-    public void render(int mouseX, int mouseY, boolean selected, MatrixStack matrixStack) {
-        drawRect(matrixStack, x, y, width, height, background.color());
+    public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
+        drawRect(drawContext, x, y, width, height, background.color());
         int rX = x + 2;
         int rY = y + 2;
         hoveredEntry = null;
         for (Text option : options.keySet()) {
             if (mouseX >= x && mouseX <= x + width && mouseY >= rY - 2 && mouseY < rY + fontHeight + 1) {
                 hoveredEntry = option;
-                drawRect(matrixStack, rX - 2, rY - 2, width, textRenderer.fontHeight + 2, hover.color());
+                drawRect(drawContext, rX - 2, rY - 2, width, textRenderer.fontHeight + 2, hover.color());
             }
-            textRenderer.drawWithShadow(matrixStack, option, rX, rY, -1);
+            RenderUtils.renderText(drawContext, rX, rY, -1, option.getString());
             rY += textRenderer.fontHeight + 2;
         }
     }
 
-    private static void drawRect(MatrixStack stack, int x, int y, int width, int height, int color) {
-        DrawableHelper.fill(stack, x, y, x + width, y + height, color);
+    private static void drawRect(DrawContext drawContext, int x, int y, int width, int height, int color) {
+        drawContext.fill(x, y, x + height, y + width, color);
     }
 
-    public interface ContextConsumer  {
+    public interface ContextConsumer {
         void takeAction(int x, int y);
     }
 }

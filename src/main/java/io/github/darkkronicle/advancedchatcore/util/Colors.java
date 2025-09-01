@@ -11,18 +11,18 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import fi.dy.masa.malilib.util.FileUtils;
 import io.github.darkkronicle.advancedchatcore.AdvancedChatCore;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.Level;
 
-/** A class storing data of colors as defined in colors.toml */
+import java.io.File;
+import java.nio.file.Path;
+import java.util.*;
+
+/**
+ * A class storing data of colors as defined in colors.toml
+ */
 @Environment(EnvType.CLIENT)
 public class Colors {
 
@@ -32,11 +32,14 @@ public class Colors {
         return INSTANCE;
     }
 
-    @Getter private final Map<String, Color> colors = new HashMap<>();
-    @Getter private final Map<String, Palette> palettes = new HashMap<>();
+    @Getter
+    private final Map<String, Color> colors = new HashMap<>();
+    @Getter
+    private final Map<String, Palette> palettes = new HashMap<>();
     private String defaultPalette = "";
 
-    private Colors() {}
+    private Colors() {
+    }
 
     /**
      * Loads configuration from colors.toml
@@ -48,11 +51,11 @@ public class Colors {
         palettes.clear();
 
         // Get file or create if it doesn't exist
-        File file = FileUtils.getConfigDirectory()
-                        .toPath()
-                        .resolve("advancedchat")
-                        .resolve("colors.toml")
-                        .toFile();
+        Path configDirectoryAsPath = FileUtils.getConfigDirectoryAsPath();
+        File file = configDirectoryAsPath
+                .resolve("advancedchat")
+                .resolve("colors.toml")
+                .toFile();
         if (!file.exists()) {
             try {
                 org.apache.commons.io.FileUtils.copyInputStreamToFile(AdvancedChatCore.getResource("colors.toml"), file);
@@ -163,7 +166,8 @@ public class Colors {
 
     public static class Palette {
 
-        @Getter private final List<Color> colors;
+        @Getter
+        private final List<Color> colors;
 
         public Palette(List<Color> colors) {
             this.colors = colors;

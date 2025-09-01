@@ -13,7 +13,6 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
-import fi.dy.masa.malilib.util.Color4f;
 import io.github.darkkronicle.advancedchatcore.AdvancedChatCore;
 import net.minecraft.client.gui.screen.Screen;
 
@@ -91,7 +90,7 @@ public class GuiConfig extends GuiConfigsBase {
         int rows = 0;
         if (supplier.getChildren() != null && supplier.getChildren().size() != 0) {
             x += 2;
-            screen.addLabel(x, y, 10, 22, new Color4f(1, 1, 1, 1).intValue, ">");
+            screen.addLabel(x, y, 10, 22, 1, ">");
             x += 8;
             addNestedTabButtons(screen, supplier, x, y);
             y += 22;
@@ -105,6 +104,7 @@ public class GuiConfig extends GuiConfigsBase {
 
     /**
      * Adds the category buttons to the selected screen
+     *
      * @param screen Screen to apply to
      * @return Amount of rows it created
      */
@@ -113,8 +113,7 @@ public class GuiConfig extends GuiConfigsBase {
         for (TabSupplier tab : GuiConfigHandler.getInstance().getTabs()) {
             int width = screen.getStringWidth(tab.getDisplayName()) + 10;
 
-            if (x >= screen.width - width - 10)
-            {
+            if (x >= screen.width - width - 10) {
                 x = 10;
                 y += 22;
                 ++rows;
@@ -130,8 +129,7 @@ public class GuiConfig extends GuiConfigsBase {
         for (TabSupplier tab : supplier.getChildren()) {
             int width = screen.getStringWidth(tab.getDisplayName()) + 10;
 
-            if (x >= screen.width - width - 10)
-            {
+            if (x >= screen.width - width - 10) {
                 x = 10;
                 y += 22;
                 ++rows;

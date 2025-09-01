@@ -9,17 +9,7 @@ package io.github.darkkronicle.advancedchatcore.chat;
 
 import io.github.darkkronicle.advancedchatcore.interfaces.IMessageFilter;
 import io.github.darkkronicle.advancedchatcore.interfaces.IMessageProcessor;
-import io.github.darkkronicle.advancedchatcore.util.FindType;
-import io.github.darkkronicle.advancedchatcore.util.SearchResult;
-import io.github.darkkronicle.advancedchatcore.util.SearchUtils;
-import io.github.darkkronicle.advancedchatcore.util.StringInsert;
-import io.github.darkkronicle.advancedchatcore.util.StringMatch;
-import io.github.darkkronicle.advancedchatcore.util.StyleFormatter;
-import io.github.darkkronicle.advancedchatcore.util.TextUtil;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import io.github.darkkronicle.advancedchatcore.util.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.hud.MessageIndicator;
@@ -29,6 +19,13 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * A class to handle chat events.
@@ -76,7 +73,13 @@ public class MessageDispatcher {
                                         url = "https://" + url;
                                     }
                                     if (current.getStyle().getClickEvent() == null) {
-                                        return Text.literal(match1.match).fillStyle(current.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
+                                        try {
+                                            URI uRI = new URI(url);
+                                            ClickEvent.OpenUrl clickEvent = new ClickEvent.OpenUrl(uRI);
+                                            return Text.literal(match1.match).fillStyle(current.getStyle().withClickEvent(clickEvent));
+                                        } catch (URISyntaxException e) {
+                                            return MutableText.of(current.getContent()).fillStyle(current.getStyle());
+                                        }
                                     }
                                     return MutableText.of(current.getContent()).fillStyle(current.getStyle());
                                 });
@@ -109,9 +112,8 @@ public class MessageDispatcher {
      * @param text Text that is received
      */
     public void handleText(Text text, @Nullable MessageSignatureData signature, @Nullable MessageIndicator indicator) {
-        boolean previouslyBlank = text.getString().length() == 0;
         text = preFilter(text, signature, indicator);
-        if (text.getString().length() == 0 && !previouslyBlank) {
+        if (text.getString().isEmpty()) {
             // No more
             return;
         }
@@ -145,7 +147,7 @@ public class MessageDispatcher {
      * registerProcess
      *
      * @param processor IMessageFilter to modify text
-     * @param index Index to add it. Supplying a negative value will put it at the end.
+     * @param index     Index to add it. Supplying a negative value will put it at the end.
      */
     public void registerPreFilter(IMessageFilter processor, int index) {
         if (index < 0) {
@@ -161,8 +163,8 @@ public class MessageDispatcher {
      * preprocessed.
      *
      * @param processor IMessageProcessor to get called back
-     * @param index Index that it will be added to. Supplying a negative value will put it at the
-     *     end.
+     * @param index     Index that it will be added to. Supplying a negative value will put it at the
+     *                  end.
      */
     public void register(IMessageProcessor processor, int index) {
         if (index < 0) {

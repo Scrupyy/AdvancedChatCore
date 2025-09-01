@@ -9,14 +9,6 @@ package io.github.darkkronicle.advancedchatcore.util;
 
 import fi.dy.masa.malilib.util.FileUtils;
 import io.github.darkkronicle.advancedchatcore.AdvancedChatCore;
-
-import java.io.*;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,6 +17,15 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.logging.log4j.Level;
 
+import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * https://gist.github.com/PimDeWitte/c04cc17bc5fa9d7e3aee6670d4105941
  *
@@ -32,9 +33,11 @@ import org.apache.logging.log4j.Level;
  */
 @Environment(EnvType.CLIENT)
 public class ProfanityUtil {
-    @Getter private final Map<Float, List<String>> words = new HashMap<>();
+    @Getter
+    private final Map<Float, List<String>> words = new HashMap<>();
 
-    @Getter private int largestWordLength = 0;
+    @Getter
+    private int largestWordLength = 0;
 
     private static final ProfanityUtil INSTANCE = new ProfanityUtil();
 
@@ -42,13 +45,14 @@ public class ProfanityUtil {
         return INSTANCE;
     }
 
-    private ProfanityUtil() {}
+    private ProfanityUtil() {
+    }
 
     public void loadConfigs() {
         try {
             List<String> lines;
-            File file = FileUtils.getConfigDirectory()
-                    .toPath()
+            Path configDirectoryAsPath = FileUtils.getConfigDirectoryAsPath();
+            File file = configDirectoryAsPath
                     .resolve("advancedchat")
                     .resolve("swear_words.csv")
                     .toFile();
@@ -83,7 +87,7 @@ public class ProfanityUtil {
             }
             AdvancedChatCore.LOGGER.log(
                     Level.INFO, "Loaded " + counter + " words to profanity filter.");
-        } catch (URISyntaxException | IOException  e) {
+        } catch (URISyntaxException | IOException e) {
             AdvancedChatCore.LOGGER.log(Level.ERROR, "Error loading swear_words.csv", e);
         }
     }

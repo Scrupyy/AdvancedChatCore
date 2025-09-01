@@ -13,11 +13,12 @@ import io.github.darkkronicle.advancedchatcore.interfaces.IMessageProcessor;
 import io.github.darkkronicle.advancedchatcore.mixin.MixinChatHudInvoker;
 import io.github.darkkronicle.advancedchatcore.util.Color;
 import io.github.darkkronicle.advancedchatcore.util.SearchUtils;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.hud.MessageIndicator;
 import net.minecraft.network.message.MessageSignatureData;
 import net.minecraft.text.Style;
@@ -25,15 +26,26 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 @Environment(EnvType.CLIENT)
 public class ChatHistoryProcessor implements IMessageProcessor {
 
     private static boolean sendToHud(Text text, @Nullable MessageSignatureData signature, MessageIndicator indicator) {
         if (AdvancedChatCore.FORWARD_TO_HUD) {
-            ((MixinChatHudInvoker) MinecraftClient.getInstance().inGameHud.getChatHud()).invokeAddMessage(
-                    text, signature, MinecraftClient.getInstance().inGameHud.getTicks(), indicator, false);
+            InGameHud inGameHud = MinecraftClient.getInstance().inGameHud;
+            ChatHud chatHud = inGameHud.getChatHud();
+
+            int ticks = inGameHud.getTicks();
+            ChatHudLine chatHudLine = new ChatHudLine(ticks, text, signature, indicator);
+
+            ((MixinChatHudInvoker) chatHud).invokeAddVisibleMessage(chatHudLine);
+            ((MixinChatHudInvoker) chatHud).invokeAddMessage(chatHudLine);
+
             return true;
         }
+
         return false;
     }
 
