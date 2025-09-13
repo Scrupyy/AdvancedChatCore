@@ -28,10 +28,10 @@
     "advancedchatcore.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.18",
+    "fabricloader": ">=0.17.2",
     "fabric": "*",
-    "minecraft": ">=1.19.4",
-    "malilib": ">=0.15.2"
+    "minecraft": ">=1.21.8",
+    "malilib": ">=0.25.5"
   },
   "custom": {
     "modmenu": {

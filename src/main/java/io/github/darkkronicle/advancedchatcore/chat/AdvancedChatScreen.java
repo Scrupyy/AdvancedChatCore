@@ -195,6 +195,7 @@ public class AdvancedChatScreen extends GuiBase {
 
     }
 
+    @Override
     public void resize(MinecraftClient client, int width, int height) {
         String string = this.chatField.getText();
         this.init(client, width, height);

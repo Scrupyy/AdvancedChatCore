@@ -104,7 +104,7 @@ public class ContextMenu extends WidgetBase {
     }
 
     private static void drawRect(DrawContext drawContext, int x, int y, int width, int height, int color) {
-        drawContext.fill(x, y, x + height, y + width, color);
+        drawContext.fill(x, y, x + width, y + height, color);
     }
 
     public interface ContextConsumer {
